@@ -3,10 +3,14 @@ import random
 import os
 import re
 
+from minimax import heuristic_evaluation
+
+
 AI = None
 PLAYER = None
 is_ai_first = True
 available_commands = ('1', '2', '3', 'f', 's', 'r', 'help')
+symbol_values = {'O': -1, 'X': 1, '.': 0}
 
 def display_game_board_on_cmd(game_board):
     for row in game_board:
@@ -23,9 +27,15 @@ def get_valid_user_input(game_board):
             if not (re.match('[1-3]', row)):
                 raise ValueError('The row input is not valid')
 
+            if len(row) > 1:
+                raise ValueError('The row value is not valid')
+
             col = input('Enter the col: ')
             if not (re.match('[1-3]', col)):
                 raise ValueError('The col input is not valid')
+
+            if len(col) > 1:
+                raise ValueError('The col value is not valid')
 
             row = int(row) - 1
             col = int(col)
@@ -40,12 +50,123 @@ def get_valid_user_input(game_board):
         
     return row, col
 
-def get_state_of_game_from(game_board):
-    pass
+
+# def get_heuristic_evaluation(board, move):
+    global symbol_values
+
+    score = 0
+    ##Evaluate horizontal winning
+    for i in range(1, len(board)):
+        symbol = board[move[0]][i]
+        score += symbol_values[symbol]
+
+    if abs(score) == 3:
+        return 1 if score > 0 else -1
+
+
+    ##Evaluate vertical
+    score = 0
+    for i in range(len(board) - 1):
+        key = board[i][move[1]]
+        score += symbol_values[key]
+        
+    if abs(score) == 3:
+        return 1 if score > 0 else -1
+
+    ##Cross evaluation top to button
+    score = 0
+    for i in range(len(board) - 1):
+        key = board[i][i + 1]
+        score += symbol_values[key]
+
+    if abs(score) == 3:
+        return 1 if score > 0 else -1
+
+    ##Cross evaluation button up
+    score = 0
+    for i in range(len(board) - 1):
+        key = board[i][len(board) - 1 - i]
+        score += symbol_values[key]
+        
+    if abs(score) == 3:
+        return 1 if score > 0 else -1
+
+    ##Evaluate lef spaces return 0 if there are any
+    for row in range(len(board) - 1):
+        for col in range(1, len(board)):
+            if board[row][col] == '.':
+                return 0
+    
+    ##Return None if the game is a tie 
+    return None
+
+def get_heuristic_evaluation(board, move):
+    global symbol_values
+
+    score = 0
+    ##Evaluate horizontal winning
+    for i in range(1, len(board)):
+        symbol = board[move[0]][i]
+        score += symbol_values[symbol]
+
+    if abs(score) == 3:
+        return 1 if score > 0 else -1
+
+
+    ##Evaluate vertical
+    score = 0
+    for i in range(len(board) - 1):
+        key = board[i][move[1]]
+        score += symbol_values[key]
+        
+    if abs(score) == 3:
+        return 1 if score > 0 else -1
+
+    ##Cross evaluation top to button
+    score = 0
+    for i in range(len(board) - 1):
+        key = board[i][i + 1]
+        score += symbol_values[key]
+
+    if abs(score) == 3:
+        return 1 if score > 0 else -1
+
+    ##Cross evaluation button up
+    score = 0
+    for i in range(len(board) - 1):
+        key = board[i][len(board) - 1 - i]
+        score += symbol_values[key]
+        
+    if abs(score) == 3:
+        return 1 if score > 0 else -1
+
+    ##Evaluate lef spaces return 0 if there are any
+    for row in range(len(board) - 1):
+        for col in range(1, len(board)):
+            if board[row][col] == '.':
+                return 0
+    
+    ##Return None if the game is a tie 
+    return None
+
+    
+def get_optimal_move(game_board):
+    global AI
+
+
+    for row in range(len(game_board) - 1):
+        for col in range(1, len(game_board)):
+            if game_board[row][col] == '.':
+                return row, col
     
 def execute_tictactoe():
+    global AI
+    global PLAYER
 
     is_game_over = False
+    is_AI_Turn = is_ai_first
+    heuristic_evaluation = None
+
     game_board = [
         ['1', '.', '.', '.'],
         ['2', '.', '.', '.'],
@@ -53,78 +174,63 @@ def execute_tictactoe():
         [' ', '1', '2', '3']
     ]
 
-    is_AI_Turn = True
-
-    if is_ai_first:
-        ai_row, ai_col = random.randint(0, 2), random.randint(1, 3)
-        update_game_board_with(ai_row, ai_col, game_board, AI)
-        is_AI_Turn = False
-
-        print('AI first move:')
-        display_game_board_on_cmd(game_board)
-
     while not is_game_over:
 
         if is_AI_Turn:
-            print ('The board:')
-            display_game_board_on_cmd(game_board)
-            print ("\nAI is thinking:")
-            ai_row, ai_col = get_ai_moves(game_board, AI)
+            print("A.I. turn")
+            
+            ai_row, ai_col = get_optimal_move(game_board)
             update_game_board_with(ai_row, ai_col, game_board, AI)
-            is_game_over = get_state_of_game_from(game_board)
+            # is_game_over = get_state_of_game_from(game_board)
+            heuristic_evaluation = get_heuristic_evaluation(game_board, [ai_row, ai_col])
 
-            os.system('cls')
-            print("AI chooses the following:")
+            
+            print(f"AI chooses the following: {ai_row} {ai_col}")
+            print(game_state) 
             display_game_board_on_cmd(game_board)
+
+            x = input("Hit enter to continue")
+            os.system('cls')
             is_AI_Turn = False
 
         else:
-            if not is_AI_Turn: 
-                os.system('cls')
-                print('The board:')
-                
+            print('Your Turn')
             display_game_board_on_cmd(game_board)
 
             print('Make your move:\n')
             us_row, us_col = get_valid_user_input(game_board)
             update_game_board_with(us_row, us_col, game_board, PLAYER)
-            is_game_over = get_state_of_game_from(game_board)
-
+            heuristic_evaluation = get_heuristic_evaluation(game_board, [us_row, us_col])
+            
             os.system('cls')
-            print('You took your move!!')
-            is_AI_Turn = True
-        
-        print('The current game state is: ')
+            print('You took your move!!')           
+            display_game_board_on_cmd(game_board)
 
-        x = input('slsx')
-        os.system('cls')
+            x = input('Hit enter to continue')
+            os.system('cls')
+            is_AI_Turn = True
+
+
 
 def configure_game(configuration=None):
+    global is_ai_first
     global AI
     global PLAYER
-    global is_ai_first
 
     if configuration == None:
-        AI = 'X' if random.randint(1, 2) == 1 else 'O'
-        PLAYER = 'O' if AI == 'X' else 'X'
-        is_ai_first = True if random.randint(0, 10) % 2 == 0 else False
-    else:
-        if '3' in configuration:
-            AI = 'X' if random.randint(1, 2) == 1 else 'O'
-            PLAYER = 'O' if AI == 'X' else 'X'
-        elif '2' in configuration:
-            AI = 'X'
-            PLAYER = 'O'
-        elif '1' in configuration:
-            AI = 'O'
-            PLAYER = 'X'
+        AI = 'O' if random.randint(0, 9) % 2 == 0 else 'X'
+        PLAYER = 'X'if AI == 'O' else 'O'
+        is_ai_first = True if AI == 'X' else False
 
-        if 'r' in configuration:
-            is_ai_first = True if random.randint(0, 10) % 2 == 0 else False
-        elif 's' in configuration:
-            is_ai_first = True
-        elif 'f' in configuration:
-            is_ai_first = False
+    elif '1' in configuration:
+        is_ai_first = False
+        AI = 'O'
+        PLAYER = 'X'
+    elif '2' in configuration:
+        is_ai_first = True
+        AI = 'X'
+        PLAYER = 'O'
+          
 
 def inputs_are_valid(user_input):
     for item in range(1, len(user_input)):
@@ -135,17 +241,15 @@ def inputs_are_valid(user_input):
 
 def output_help_information():
     print("Welcome to tictactoe")
-    print("To choose a row use the following format: row_number col_numbe \n")
-    print("To play just execute the program as you will with any other python program \nAlternative you can include the following commands:")
+    print("Rules of the game: \n1. There are two players: 'X' and 'O' \n2. Player X always goes first \n3. Player that connects three dots in line first wins")
+    print("3. A connected line could be diagonal, vertical or horizontal")
+    print("\nHow to Play:")
 
-    print("'1' to choose player 'X'")
-    print("'2' to choose player 'O'")
-    print("'3' to choose randomly \n")
+    print("To choose where you want to put your next input enter the coordinates on the following format: row_number col_numbe \n")
+    print("By default the game chooses the starting player randomly \nAlternative you can include the following commands:")
 
-    print("Further customization can be achieved with the following:")
-    print("'f' to start first")
-    print("'s' to start second")
-    print("'r' to make it random")
+    print("'1' to start first")
+    print("'2' to start second")
 
 def main(user_input):
 
@@ -155,11 +259,13 @@ def main(user_input):
         else:
             if inputs_are_valid(user_input):
                 configure_game(user_input)
+                # print(f"{AI}, {PLAYER}, {is_ai_first}")
                 execute_tictactoe()
             else:
                 print("Non valid commands given. \nPlease use the 'help' command to view available commands")
     else:
         configure_game()
+        # print(f"{AI}, {PLAYER}, {is_ai_first}")
         execute_tictactoe()
 
 if __name__ == "__main__":
