@@ -166,6 +166,7 @@ def execute_tictactoe():
     is_game_over = False
     is_AI_Turn = is_ai_first
     heuristic_evaluation = None
+    winner_player = None
 
     game_board = [
         ['1', '.', '.', '.'],
@@ -184,9 +185,11 @@ def execute_tictactoe():
             # is_game_over = get_state_of_game_from(game_board)
             heuristic_evaluation = get_heuristic_evaluation(game_board, [ai_row, ai_col])
 
-            
+            if heuristic_evaluation != None:
+                winner_player = AI
+                break
+        
             print(f"AI chooses the following: {ai_row} {ai_col}")
-            print(game_state) 
             display_game_board_on_cmd(game_board)
 
             x = input("Hit enter to continue")
@@ -201,7 +204,10 @@ def execute_tictactoe():
             us_row, us_col = get_valid_user_input(game_board)
             update_game_board_with(us_row, us_col, game_board, PLAYER)
             heuristic_evaluation = get_heuristic_evaluation(game_board, [us_row, us_col])
-            
+            if heuristic_evaluation_ != None:
+                winner_player = PLAYER
+                break
+
             os.system('cls')
             print('You took your move!!')           
             display_game_board_on_cmd(game_board)
@@ -210,6 +216,10 @@ def execute_tictactoe():
             os.system('cls')
             is_AI_Turn = True
 
+    if heuristic_evaluation == 0:
+        print("The game is a draw")
+    elif heuristic_evaluation == 1:
+        print(f"Player {winner_player} wins")
 
 
 def configure_game(configuration=None):
