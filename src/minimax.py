@@ -64,6 +64,34 @@ def get_best_move(board):
 
     return best_move[0], best_move[1]
 
+def get_valid_user_input(game_board):
+
+    while True:   
+        try:
+            user_coordinates = input("Enter your choide 'row, col': ")
+            user_coordinates =[ x for x in user_coordinates.replace(" ", "")]
+            
+            if len(user_coordinates) == 2:
+                for location in user_coordinates:
+                    if re.match('[^1-3]', location):
+                        raise ValueError('The input given is not valid')
+
+                row, col = int(user_coordinates[0]) - 1, int(user_coordinates[1])
+
+                if game_board[row][col] != '.':
+                    raise ValueError('Position already occupied.')
+                
+            else:
+                raise ValueError('Input given is not valid')
+
+            return row, col
+
+        except ValueError as error:
+            print(error)
+
+        
+    
+
 table =[
     ['1', 'O', '.', '.'],
     ['2', '.', '.', '.'],
@@ -94,3 +122,4 @@ table4 = [
 move = [2, 1]
 player = 'X'
 
+print(get_valid_user_input(table))
