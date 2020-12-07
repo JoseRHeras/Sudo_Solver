@@ -30,10 +30,9 @@ def update_screen_with(game_board, row, col, player=None):
     os.system('cls')
 
 def get_valid_user_input(game_board):
-
     while True:   
         try:
-            user_coordinates = input("Enter your choide 'row, col': ")
+            user_coordinates = input("Enter your choice 'row, col': ")
             user_coordinates =[ x for x in user_coordinates.replace(" ", "")]
             
             if len(user_coordinates) == 2:
@@ -63,7 +62,6 @@ def get_heuristic_evaluation(board, move):
     if abs(score) == 3:
         return 1 if score > 0 else -1
 
-
     ##Evaluate vertical
     score = 0
     for i in range(len(board) - 1):
@@ -91,13 +89,13 @@ def get_heuristic_evaluation(board, move):
     if abs(score) == 3:
         return 1 if score > 0 else -1
 
-    ##Evaluate lef spaces return 0 if there are any
+    ##Evaluate lef spaces return None if there 
     for row in range(len(board) - 1):
         for col in range(1, len(board)):
             if board[row][col] == '.':
                 return None
     
-    ##Return None if the game is a tie 
+    ##Return 0 if the game is a tie 
     return 0
 
 
@@ -109,10 +107,13 @@ def generate_all_possible_moves(board):
             if board[row][col] == '.':
                 possible_moves.append([row, col])
     
+
+    if len(possible_moves) > 5:
+        random.shuffle(possible_moves)
+
     return possible_moves
 
-def min_max_tic_tac_toe(board, move, maximize):
-    
+def min_max_tic_tac_toe(board, move, maximize, alpha, beta):    
     score = get_heuristic_evaluation(board, move)
     if score != None:
         return score
@@ -124,9 +125,13 @@ def min_max_tic_tac_toe(board, move, maximize):
         
         for move in possible_moves:
             board[move[0]][move[1]] = AI
-            potential_score = min_max_tic_tac_toe(board, move, False)
+            potential_score = min_max_tic_tac_toe(board, move, False, alpha, beta)
             max_score = max(max_score, potential_score)
             board[move[0]][move[1]] = '.'
+
+            alpha = max(alpha, max_score)
+            if beta <= alpha:
+                break
 
         return max_score
             
@@ -135,9 +140,13 @@ def min_max_tic_tac_toe(board, move, maximize):
         
         for move in possible_moves:
             board[move[0]][move[1]] = PLAYER
-            potential_score = min_max_tic_tac_toe(board, move, True)
+            potential_score = min_max_tic_tac_toe(board, move, True, alpha, beta)
             min_score = min(potential_score, min_score)
             board[move[0]][move[1]] = '.'
+
+            beta = min(beta, min_score)
+            if beta <= alpha:
+                break
 
         return min_score
 
@@ -149,33 +158,32 @@ def get_best_move(board, is_maximizing=True):
 
     for move in possible_move: 
         board[move[0]][move[1]] = AI if is_maximizing else PLAYER
-        possible_best_move = min_max_tic_tac_toe(board, move, not is_maximizing)
+        possible_best_move = min_max_tic_tac_toe(board, move, not is_maximizing, -math.inf, math.inf)
         board[move[0]][move[1]] = '.'
 
-        if possible_best_move > score and is_maximizing:             
-            best_move = move
-            score = possible_best_move
-
+        if possible_best_move > score and is_maximizing:
+            best_move, score = move, possible_best_move            
+           
         elif possible_best_move < score and not is_maximizing:
-            best_move = move
-            score = possible_best_move
+            best_move, score = move, possible_best_move
     
     return best_move[0], best_move[1]
 
 
 def ai_makes_move_and_get_result(player_icon, game_board, ai_turn):
-    player_name = 'Kike' if player_icon == 'X' else 'Kuru'
+    player_name = 'Kike A.I.' if player_icon == 'X' else 'Kuru A.I.'
     print(f"{player_name} turn")
             
     ai_row, ai_col = get_best_move(game_board, ai_turn)
     update_game_board_with(ai_row, ai_col, game_board, player_icon)
-    current_state_of_the_game = get_heuristic_evaluation(game_board, [ai_row, ai_col])
+
+    game_state = get_heuristic_evaluation(game_board, [ai_row, ai_col])
             
-    if current_state_of_the_game == None:             
+    if game_state == None:             
         update_screen_with(game_board, ai_row, ai_col, player_name)
-        return not ai_turn, current_state_of_the_game
+        return not ai_turn, game_state
     
-    return None, current_state_of_the_game
+    return None, game_state
 
 def execute_tictactoe():
 
@@ -223,15 +231,9 @@ def execute_tictactoe():
     if state_of_the_game == 0:
         print("\nThe game is a draw")
     elif state_of_the_game == 1:
-        print(f"\nKike Wins")
+        print(f"\nKike A.I. Wins")
     else:
-        print ("\nKuru wins") if AI_MODE else ("\nYou Win")
-
-        # if AI_MODE:
-        #     print("\nKuru wins")
-        # else:
-        #     print(f"\nYou Win")
-
+        print ("\nKuru A.I. wins") if AI_MODE else ("\nYou Win")
 
 def configure_game(configuration=None):
     global IS_AI_FIRST
@@ -254,20 +256,21 @@ def inputs_are_valid(user_input):
     return True
 
 def printout_help_information_to_screen():
-    print("Welcome to tictactoe")
-    print("Rules of the game: \n1. There are two players: 'X' and 'O' \n2. AI uses X \n3. Player uses 'O' ")
+    print("\nWelcome to Tic-Tac-Toe\n")
+    print("Rules of the game: \n1. There are two players: 'X' and 'O' \n2. AI uses 'X' \n3. Human player uses 'O' ")
     print("4. Player that connects three dots in line first wins")
     print("5. A connected line could be diagonal, vertical or horizontal")
     print("\nHow to Play:")
 
-    print("To choose where you want to put your next input enter the coordinates on the following format: row_number col_numbe \n")
-    print("By default the game starst as Player vs A.I. game where first player is chosen randomly \nAlternative you can include the following commands:\n")
-
+    print("-To choose where you want to put your next input enter the coordinates on the following format: row_number col_number")
+    print("-After each move the game will wait until you hit \"Enter\" to contine to the next step")
+    print("-By default the game starts as Player vs A.I. game where first player is chosen randomly\n")
+    print("-Alternative you can include the following commands using the format \"py.exe tictactoe.py #comand# \"\n")
     print("'1' to start first")
-    print("'2' to start second\n")
-    print("'A' to let kike and kuru have fun\n")
+    print("'2' to start second")
+    print("'A' to let Kike A.I. and Kuru A.I. do a machine vs machine demonstration\n")
 
-    print("P.S. Kuru and Kike are the designated names to our AIs.")
+    print("P.S. Kuru and Kike are the names I have chosen for the A.I. in this game.(No special meaning behind)\n")
 
 def main(user_input):
 
