@@ -3,6 +3,7 @@ import random
 import os
 import re
 import math
+import platform
 
 
 AI = 'X'
@@ -11,6 +12,7 @@ IS_AI_FIRST = True
 AI_MODE = False
 COMMANDS = ('1', '2', 'A', 'help')
 HEURISTIC_VALUES = {'O': -1, 'X': 1, '.': 0}
+CLEAR_COMMAND = 'cls' if platform.system() == 'Windows' else 'clear'
 
 def display_game_board_on_cmd(game_board):
     for row in game_board:
@@ -54,7 +56,7 @@ def get_valid_user_input(game_board):
 def get_heuristic_evaluation(board, move):
     
     score = 0
-    ##Evaluate horizontal winning
+    ##Horizontal evaluation
     for i in range(1, len(board)):
         symbol = board[move[0]][i]
         score += HEURISTIC_VALUES[symbol]
@@ -62,7 +64,7 @@ def get_heuristic_evaluation(board, move):
     if abs(score) == 3:
         return 1 if score > 0 else -1
 
-    ##Evaluate vertical
+    ##Vertical evaluation
     score = 0
     for i in range(len(board) - 1):
         key = board[i][move[1]]
@@ -89,7 +91,7 @@ def get_heuristic_evaluation(board, move):
     if abs(score) == 3:
         return 1 if score > 0 else -1
 
-    ##Evaluate lef spaces return None if there 
+    ##Evaluates for non-used spaces. Returns None if spaces left
     for row in range(len(board) - 1):
         for col in range(1, len(board)):
             if board[row][col] == '.':
@@ -186,7 +188,7 @@ def ai_makes_move_and_get_result(player_icon, game_board, ai_turn):
     return None, game_state
 
 def execute_tictactoe():
-
+    
     is_AI_Turn = IS_AI_FIRST
     state_of_the_game = None
 
@@ -198,7 +200,8 @@ def execute_tictactoe():
     ]
 
     while True:
-        os.system('cls')
+        
+        os.system(CLEAR_COMMAND)
         if is_AI_Turn:
             is_AI_Turn, state_of_the_game = ai_makes_move_and_get_result(AI, game_board, is_AI_Turn)
             if is_AI_Turn == None:
@@ -218,13 +221,13 @@ def execute_tictactoe():
                 state_of_the_game = get_heuristic_evaluation(game_board, [us_row, us_col])
                
                 if state_of_the_game == None:              
-                    os.system('cls')
+                    os.system(CLEAR_COMMAND)
                     update_screen_with(game_board, us_row, us_col)
                     is_AI_Turn = True
                 else:
                     break
     
-    os.system('cls')
+    os.system(CLEAR_COMMAND)
     print("The verdict\n")
     display_game_board_on_cmd(game_board)
 
@@ -265,7 +268,8 @@ def printout_help_information_to_screen():
     print("-To choose where you want to put your next input enter the coordinates on the following format: row_number col_number")
     print("-After each move the game will wait until you hit \"Enter\" to contine to the next step")
     print("-By default the game starts as Player vs A.I. game where first player is chosen randomly\n")
-    print("-Alternative you can include the following commands using the format \"py.exe tictactoe.py #comand# \"\n")
+    print("-Alternative you can include the following commands using the format \"py.exe tictactoe.py #comand#\"\n")
+    print("Commands available:")
     print("'1' to start first")
     print("'2' to start second")
     print("'A' to let Kike A.I. and Kuru A.I. do a machine vs machine demonstration\n")
