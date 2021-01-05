@@ -153,7 +153,7 @@ def min_max_tic_tac_toe(board, move, maximize, alpha, beta):
         return min_score
 
 def get_best_move(board, is_maximizing=True):
-
+    print(is_maximizing)
     possible_move = generate_all_possible_moves(board)
     score = - math.inf if is_maximizing else math.inf
     best_move = None
@@ -164,6 +164,8 @@ def get_best_move(board, is_maximizing=True):
         board[move[0]][move[1]] = '.'
 
         if possible_best_move > score and is_maximizing:
+            print(possible_best_move)
+            print(move)
             best_move, score = move, possible_best_move            
            
         elif possible_best_move < score and not is_maximizing:
@@ -293,3 +295,4 @@ def main(user_input):
 
 if __name__ == "__main__":
     main(sys.argv)
+

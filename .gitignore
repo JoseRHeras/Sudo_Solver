@@ -48,4 +48,5 @@ docs/_build/
 target/
 
 #Own
-minimax.py
+test.py
+obsolete.py
